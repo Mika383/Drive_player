@@ -1,0 +1,11 @@
+{
+  "name": "Drive Player Feasibility",
+  "short_name": "Drive Test",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#151923",
+  "theme_color": "#151923",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

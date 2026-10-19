@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#151923">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <title>Drive Player — thử tải sẵn bài tiếp</title>
+    <style>
+      :root { color-scheme: dark; font: 16px system-ui, sans-serif; background: #151923; color: #f6f7fa; }
+      body { max-width: 760px; margin: 0 auto; padding: 20px 16px 90px; }
+      h1 { font-size: 1.5rem; }
+      p { line-height: 1.45; }
+      a { color: #b9d1ff; }
+      .panel { background: #202634; border: 1px solid #364052; border-radius: 12px; padding: 16px; margin: 16px 0; }
+      .muted { color: #a8b0bd; }
+      .field { display: grid; gap: 6px; margin: 12px 0; }
+      select, button { font: inherit; min-height: 44px; }
+      select { width: 100%; padding: 8px; }
+      button { color: #fff; background: #455a85; border: 1px solid #7388ad; border-radius: 8px; padding: 10px 12px; }
+      button:disabled { opacity: .45; }
+      button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid #ffb966; outline-offset: 2px; }
+      .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+      audio { width: 100%; margin: 8px 0 16px; }
+      #status { min-height: 48px; color: #ffce8f; }
+      pre { max-height: 330px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .75rem; }
+    </style>
+    <script src="/playback-spike.js" defer></script>
+  </head>
+  <body>
+    <p><a href="/">← Trở về prototype</a></p>
+    <h1>Thử tải sẵn bài tiếp theo</h1>
+    <p class="muted">Chỉ dùng với hai bài thử. Tối đa 25 MiB cho mỗi bài tải sẵn; âm thanh chỉ giữ trong bộ nhớ của trang.</p>
+    <section class="panel">
+      <label class="field" for="first">Bài bắt đầu<select id="first"></select></label>
+      <label class="field" for="second">Bài tiếp theo<select id="second"></select></label>
+      <div class="actions">
+        <button id="start" type="button" disabled>Phát thử</button>
+        <button id="stop" type="button" disabled>Dừng</button>
+      </div>
+      <p id="status" role="status" aria-live="polite">Đang tải danh sách…</p>
+      <p class="muted">Bấm Phát thử, đợi dòng “Bài sau đã tải xong và sẵn sàng”, rồi khóa màn hình. Khi quay lại, dùng App Switcher để tránh mở trang mới từ biểu tượng.</p>
+    </section>
+    <section class="panel">
+      <h2>Hai phần tử phát</h2>
+      <p class="muted">Phần tử A</p>
+      <audio id="audio-a" controls preload="auto"></audio>
+      <p class="muted">Phần tử B</p>
+      <audio id="audio-b" controls preload="auto"></audio>
+    </section>
+    <section class="panel">
+      <h2>Chẩn đoán</h2>
+      <p class="muted">Chỉ ghi thời gian, trạng thái phát và tải; không ghi tên bài, ID, URL hay token. Nhật ký lưu cục bộ trên trình duyệt này.</p>
+      <pre id="log"></pre>
+      <div class="actions">
+        <button id="copy" type="button">Sao chép chẩn đoán</button>
+      </div>
+    </section>
+  </body>
+</html>

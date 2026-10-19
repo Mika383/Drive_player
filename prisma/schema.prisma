@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  googleSub   String   @unique @map("google_sub")
+  email       String
+  displayName String?  @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  credential GoogleCredential?
+  sessions   Session[]
+  library    Library?
+  audit      AuditEvent[]
+
+  @@map("users")
+}
+
+model GoogleCredential {
+  userId             String    @id @map("user_id") @db.Uuid
+  refreshCiphertext  Bytes     @map("refresh_ciphertext")
+  nonce              Bytes
+  authTag            Bytes     @map("auth_tag")
+  keyVersion         Int       @map("key_version")
+  scopes             String
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  revokedAt          DateTime? @map("revoked_at")
+  user               User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("google_credentials")
+}
+
+model Session {
+  idHash    String    @id @map("id_hash")
+  userId    String    @map("user_id") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Library {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @map("user_id") @db.Uuid
+  rootDriveId     String    @map("root_drive_id")
+  rootName        String    @map("root_name")
+  incomingDriveId String?   @map("incoming_drive_id")
+  songsDriveId    String?   @map("songs_drive_id")
+  verifiedAt      DateTime? @map("verified_at")
+  lastScanAt      DateTime? @map("last_scan_at")
+  revision        Int       @default(1)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("libraries")
+}
+
+model AuditEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String   @map("actor_user_id") @db.Uuid
+  action      String
+  resource    String
+  resourceId  String   @map("resource_id")
+  before      Json?
+  after       Json?
+  requestId   String   @map("request_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  actor       User     @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([actorUserId, createdAt])
+  @@map("audit_events")
+}

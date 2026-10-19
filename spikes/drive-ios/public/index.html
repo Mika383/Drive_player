@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#151923">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <title>Drive Player — kiểm chứng</title>
+    <style>
+      :root { color-scheme: dark; font: 16px system-ui, sans-serif; background: #151923; color: #f6f7fa; }
+      body { max-width: 760px; margin: 0 auto; padding: 20px 16px 120px; }
+      h1 { font-size: 1.5rem; margin: 4px 0 8px; }
+      h2 { font-size: 1.1rem; margin: 0 0 12px; }
+      p { line-height: 1.45; }
+      .muted { color: #a8b0bd; }
+      .panel { background: #202634; border: 1px solid #364052; border-radius: 12px; padding: 16px; margin: 16px 0; }
+      .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+      button, input[type=file] { font: inherit; }
+      button { color: #fff; background: #455a85; border: 1px solid #7388ad; border-radius: 8px; padding: 10px 12px; min-height: 44px; cursor: pointer; }
+      button:disabled { opacity: .45; cursor: default; }
+      button:focus-visible, input:focus-visible { outline: 3px solid #ffb966; outline-offset: 2px; }
+      .item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid #364052; }
+      .item span { overflow-wrap: anywhere; }
+      .item .actions { flex-shrink: 0; }
+      audio { width: 100%; margin-top: 12px; }
+      #playback-log { max-height: 260px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .75rem; }
+      #status { min-height: 24px; color: #ffce8f; }
+      dialog { color: #f6f7fa; background: #202634; border: 1px solid #7388ad; border-radius: 12px; max-width: min(400px, 90vw); }
+      dialog::backdrop { background: #000a; }
+      [hidden] { display: none !important; }
+    </style>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <h1>Drive Player · kiểm chứng</h1>
+    <p class="muted">Chỉ dùng với thư mục thử nghiệm. Đây chưa phải giao diện sản phẩm.</p>
+    <p id="status" role="status" aria-live="polite"></p>
+
+    <section class="panel" aria-labelledby="account-heading">
+      <h2 id="account-heading">1. Tài khoản</h2>
+      <p id="account"></p>
+      <div class="actions">
+        <button id="login">Đăng nhập Google</button>
+        <button id="logout" hidden>Đăng xuất</button>
+      </div>
+    </section>
+
+    <section id="setup" class="panel" aria-labelledby="setup-heading" hidden>
+      <h2 id="setup-heading">2. Thư mục Drive</h2>
+      <p id="folder" class="muted"></p>
+      <p>Chia sẻ thư mục thử nghiệm cho <strong id="service-email"></strong> với quyền Editor.</p>
+      <div class="actions">
+        <button id="pick-folder">Chọn thư mục</button>
+        <button id="pick-folder-redirect">Chọn thư mục qua Google</button>
+        <button id="verify-share">Kiểm tra quyền Editor</button>
+        <button id="setup-folders">Tạo/kiểm tra incoming và songs</button>
+      </div>
+    </section>
+
+    <section id="library" class="panel" aria-labelledby="library-heading" hidden>
+      <h2 id="library-heading">3. Phát thử</h2>
+      <p class="muted">Tải lên tối đa 5 MB ở prototype; có thể tự thả tệp lớn hơn vào incoming/ trên Drive.</p>
+      <input id="upload-file" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav" aria-label="Chọn tệp âm thanh mẫu">
+      <div class="actions">
+        <button id="upload">Tải tệp mẫu</button>
+        <button id="refresh">Quét lại</button>
+      </div>
+      <h2>Chờ nhập</h2>
+      <div id="incoming-list"></div>
+      <h2>Đã nhập</h2>
+      <div id="songs-list"></div>
+    </section>
+
+    <section id="player" class="panel" aria-labelledby="player-heading" hidden>
+      <h2 id="player-heading">Đang phát</h2>
+      <p id="track-name"></p>
+      <audio id="audio" controls preload="metadata"></audio>
+      <div class="actions"><button id="next">Bài tiếp</button></div>
+    </section>
+
+    <details class="panel">
+      <summary>Chẩn đoán phát nhạc</summary>
+      <p><a href="/playback-spike" style="color:#b9d1ff">Thử tải sẵn bài tiếp theo</a></p>
+      <p class="muted">Chỉ ghi sự kiện phát và số giây, không ghi tên bài, mã tệp hoặc token. Nhật ký giữ trên thiết bị này để xem sau khi mở lại app.</p>
+      <pre id="playback-log"></pre>
+      <button id="copy-playback-log" type="button">Sao chép chẩn đoán</button>
+    </details>
+
+    <dialog id="import-dialog" aria-labelledby="import-heading">
+      <h2 id="import-heading">Xác nhận nhập bài</h2>
+      <p id="import-name"></p>
+      <p class="muted">Tệp sẽ được chuyển từ incoming/ sang songs/ trong thư mục thử nghiệm.</p>
+      <div class="actions">
+        <button id="cancel-import">Hủy</button>
+        <button id="confirm-import">Nhập bài</button>
+      </div>
+    </dialog>
+  </body>
+</html>

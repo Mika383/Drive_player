@@ -1,0 +1,10 @@
+# Local credentials and temporary prototype data
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+src/generated/
+*.tsbuildinfo
+*.service-account.json
+*.credentials.json
