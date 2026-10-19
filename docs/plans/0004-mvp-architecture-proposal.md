@@ -2,11 +2,13 @@
 
 Trạng thái: Accepted — giai đoạn 1–2 Done trên máy phát triển; giai đoạn 3–5 Pending
 Ngày: 19/10/2026
+
+Lưu ý: Phần “đề xuất/dự kiến” bên dưới là thiết kế tại thời điểm phê duyệt. Schema nền tảng và giai đoạn 1–2 đã được triển khai. Phép thử hàng chờ theo danh sách quét trong [kế hoạch 0005](0005-arbitrary-track-startup.md) được thực hiện sau đó; playlist và player sản phẩm của giai đoạn 3–5 vẫn Pending.
 Phê duyệt giai đoạn 1–2: 19/10/2026.
 Hướng stack được xác nhận: 19/10/2026 — một ứng dụng Next.js cho web và API, giữ PostgreSQL/Prisma.
 Lưu refresh token Google đã mã hóa trên server được người dùng duyệt: 19/10/2026.
 Định dạng âm thanh bản đầu được người dùng duyệt: MP3 và M4A/AAC; file khác giữ nguyên trong `incoming/`, báo chưa hỗ trợ, chưa tự chuyển mã.
-Tệp MP3/M4A lớn hơn 25 MiB vẫn được nhập và phát thủ công; giao diện báo tự chuyển bài khi khóa màn hình chưa được bảo đảm. Giới hạn 25 MiB chỉ áp dụng cơ chế tải sẵn đã kiểm chứng, không áp dụng cho thư viện.
+Tệp MP3/M4A lớn hơn 25 MiB vẫn được nhập và phát thủ công; giao diện báo tự chuyển bài khi khóa màn hình chưa được bảo đảm nếu bài sau chưa sẵn sàng. Mốc 25 MiB thuộc prototype 0003, không phải giới hạn thư viện; phép thử 0005 dùng bộ đệm phiên 50 MiB cho các bài không đang nghe.
 Nút tải nhạc từ web giới hạn 200 MiB mỗi tệp ở bản đầu. Tệp thả trực tiếp vào Drive không chịu giới hạn upload của ứng dụng nhưng vẫn phải thuộc định dạng hỗ trợ để nhập/phát.
 Mô hình triển khai Next.js Node server và PostgreSQL trên máy chủ luôn hoạt động được người dùng duyệt: 19/10/2026. Nhà cung cấp/domain chưa chốt.
 Mỗi Gmail dùng một folder Drive trong bản đầu; sau khi thiết lập và nhập bài, chưa hỗ trợ đổi sang folder khác. Người dùng duyệt: 19/10/2026.
@@ -39,14 +41,14 @@ Không đề xuất Vercel Functions làm API âm thanh/upload chính ở MVP: h
 ## Ranh giới dữ liệu và quyền
 
 - Đăng nhập Google bằng OAuth code flow phía server. Dùng `openid email profile` cho danh tính và `drive.file` cho thao tác Drive của người dùng. Picker chọn folder; backend kiểm tra folder thuộc My Drive của đúng Gmail, có quyền thêm tệp. Tài khoản dịch vụ chỉ được người dùng chia sẻ folder đó; backend vẫn kiểm tra từng file thuộc cây folder trước khi đọc/phát. [Google mô tả `drive.file` là quyền theo tệp được chọn qua Picker](https://developers.google.com/workspace/drive/api/guides/api-specific-auth).
-- Lưu refresh token người dùng cho thao tác tạo folder/tải lên về sau, dùng `access_type=offline`; token chỉ ở server, mã hóa khi lưu DB, khóa mã hóa ở secret store/biến môi trường, hỗ trợ thu hồi. [Google yêu cầu lưu refresh token an toàn](https://developers.google.com/identity/protocols/oauth2/resources/best-practices). Người dùng đã duyệt nguyên tắc lưu token đã mã hóa; định dạng mã hóa, luân chuyển khóa và thu hồi sẽ nằm trong thiết kế chi tiết.
+- Lưu refresh token người dùng cho thao tác tạo folder/tải lên về sau, dùng `access_type=offline`; token chỉ ở server, mã hóa khi lưu DB, khóa mã hóa ở secret store/biến môi trường. [Google yêu cầu lưu refresh token an toàn](https://developers.google.com/identity/protocols/oauth2/resources/best-practices). Lát cắt hiện tại đã dùng AES-256-GCM; luân chuyển khóa và thao tác thu hồi/ngắt kết nối Google chưa triển khai.
 - Phiên người dùng dùng cookie HttpOnly/Secure/SameSite, lưu session bền vững để cùng Gmail trên thiết bị khác thấy lại folder đã liên kết sau khi đăng nhập; không đồng bộ cookie giữa thiết bị. Tách session khỏi token Google. CSRF, giới hạn yêu cầu và xác thực tài nguyên áp dụng cho thao tác ghi và stream.
 - Chỉ mục DB là dữ liệu dẫn xuất; Drive là nguồn tệp. Khi tệp bị đổi/xóa hoặc thu hồi quyền, quét lại và báo trạng thái rõ ràng. Không tự khôi phục bằng cách đọc Drive ngoài folder.
 - Tài khoản dịch vụ có thể thấy nhiều folder được các người dùng khác nhau chia sẻ. Vì vậy **mọi** thao tác liệt kê, đọc, đổi tên, di chuyển và stream phải gắn với `library.rootDriveId` của phiên hiện tại; quyền của Google đối với tài khoản dịch vụ không thay thế kiểm tra cách ly giữa người dùng trong ứng dụng.
 
 ## Thiết kế dữ liệu ban đầu để thẩm định
 
-Các bảng dùng UUID làm PK, timestamp UTC trong DB và hiển thị mặc định GMT+7; mặc định giao diện tiếng Anh, có tiếng Việt theo chỉ dẫn dự án. Mọi FK có index phục vụ truy vấn và hành vi xóa được chốt trong migration; không dùng `ON DELETE CASCADE` cho dữ liệu thư viện quan trọng. Đây là thiết kế đề xuất, chưa tạo schema.
+Các bảng dùng UUID làm PK, timestamp UTC trong DB và hiển thị mặc định GMT+7; mặc định giao diện tiếng Anh, có tiếng Việt theo chỉ dẫn dự án. Mọi FK có index phục vụ truy vấn và hành vi xóa được chốt trong migration; không dùng `ON DELETE CASCADE` cho dữ liệu thư viện quan trọng. Đây là thiết kế ban đầu: năm bảng `users`, `google_credentials`, `sessions`, `libraries`, `audit_events` đã có trong migration nền tảng; các bảng còn lại vẫn là đề xuất cho giai đoạn sau.
 
 | Bảng | Cột chính và ràng buộc | Mục đích |
 | --- | --- | --- |
@@ -85,9 +87,11 @@ Index truy vấn ban đầu: `(library_id,state,title,id)` cho danh sách/tìm k
 
 ## Phát nhạc và dữ liệu Drive
 
-- Phát qua API có xác thực, hỗ trợ byte range. Browser giữ tối đa bài hiện tại và một bài kế tiếp, ưu tiên chuẩn bị bài sau khi bài hiện tại đã bắt đầu. Chỉ báo sẵn sàng khi dữ liệu cần cho lần chuyển đã có; nếu chưa đủ, giao diện báo đang tải và không tuyên bố phát liền mạch.
-- Cách tải nguyên bài vào Blob dưới 25 MiB hiện là **phương pháp kiểm chứng**. Thiết kế sản phẩm cần đo dung lượng, bộ nhớ, dữ liệu di động và hành vi iOS; quyết định tải toàn bộ, giới hạn kích thước hoặc cách phát khác trước khi hỗ trợ tệp lớn. Không bật tải offline ở MVP.
-- Tệp MP3/M4A lớn hơn 25 MiB vẫn có thể nhập và phát theo luồng trực tiếp. Nếu là bài kế tiếp trong hàng chờ, giao diện phải báo trước rằng phát liên tục khi khóa màn hình chưa được bảo đảm; không âm thầm bỏ bài hoặc từ chối nhập. Phần tải sẵn có giới hạn tài nguyên và có thể không dùng cho bài lớn cho tới khi thử giải pháp khác.
+Kế hoạch [0005](0005-arbitrary-track-startup.md) được duyệt sau 0004 và cập nhật quy tắc tải trước: ưu tiên bài đang nghe, chuẩn bị bài gần nhất cùng tối đa hai bài xa hơn trong bộ đệm phiên 50 MiB. Hiện quy tắc này chỉ được triển khai ở trang thử `/queue-spike`; player sản phẩm của giai đoạn 4 vẫn Pending.
+
+- Phát qua API có xác thực, hỗ trợ byte range. Bài đang nghe được ưu tiên; khi đệm đủ, chuẩn bị bài gần nhất và phần đầu của tối đa hai bài sau theo kế hoạch 0005. Chỉ báo sẵn sàng khi bài gần nhất đã tải đủ và phần tử chờ có thể phát; nếu chưa đủ, giao diện báo đang tải và không tuyên bố phát liền mạch.
+- Phép thử 0005 dùng bộ đệm phiên tối đa 50 MiB cho các bài không đang nghe, không lưu qua phiên và không bật nghe offline. Thiết kế player sản phẩm vẫn cần đo bộ nhớ, dữ liệu di động và hành vi iOS trên danh sách dài, tệp lớn và mạng yếu.
+- Tệp MP3/M4A lớn hơn 25 MiB vẫn có thể nhập và phát theo luồng trực tiếp. Mốc 25 MiB thuộc phép thử prototype 0003, không phải giới hạn tải trước của phép thử 0005. Nếu bài kế tiếp chưa sẵn sàng hoặc vượt khả năng bộ đệm, giao diện phải báo rằng phát liên tục khi khóa màn hình chưa được bảo đảm; không âm thầm bỏ bài hoặc từ chối nhập.
 - Người dùng phải xác nhận trước khi di chuyển/đổi tên tệp từ `incoming/` vào `songs/`; giữ nguyên tệp chưa chọn, tránh ghi đè. Tác vụ Drive và DB có thể thành công từng phần nên cần trạng thái thao tác, idempotency và đối soát khi lỗi.
 - Upload từ web kiểm tra tối đa 200 MiB mỗi tệp ở cả UI và backend, truyền dạng stream đến Drive qua danh tính người dùng; từ chối trước khi upload khi có `Content-Length` vượt giới hạn và ngắt nếu byte thực tế vượt giới hạn. Không đọc toàn tệp vào RAM server.
 - Bản đầu chỉ nhập/phát MP3 và M4A/AAC trên iPhone. Tệp định dạng khác vẫn thấy trong `incoming/` với thông báo chưa hỗ trợ và không bị đổi/xóa; không tự chuyển mã. Kiểm tra phần mở rộng, MIME và khả năng giải mã thực tế trước khi nhập; phần mở rộng không đủ để bảo đảm phát được.
@@ -95,7 +99,7 @@ Index truy vấn ban đầu: `(library_id,state,title,id)` cho danh sách/tìm k
 ## Các giai đoạn đề xuất
 
 1. **Thiết kế hợp đồng:** chốt phần cần cho lát cắt: một root/Gmail, `incoming/`, `songs/`, quyền Drive, token và phát một bài; bài trùng và `lyrics.json` chờ giai đoạn tương ứng. Done — ADR 0001–0002 và `docs/DEVELOPMENT.md`.
-2. **Lát cắt chạy được:** Next.js, Prisma migration đầu, OAuth, session bền vững, chọn/kiểm tra folder, quét và phát một bài bằng byte range. Done trên máy phát triển — migration đã áp; HTTP ẩn danh và OAuth redirect đã kiểm tra; người dùng xác nhận đăng nhập, chọn folder, kiểm tra Editor, chuẩn bị folder, quét và phát/tua. Hai tệp nhỏ phát được; MP3 8,5 MB đã đệm hết, tua và kết thúc trong Edge sau khi yêu cầu `preload="auto"` cho bài tối đa 25 MiB. Đăng nhập cùng Gmail ở cửa sổ InPrivate đã vào thẳng thư viện cũ. Ứng dụng Next.js mới chưa thử trên iPhone.
+2. **Lát cắt chạy được:** Next.js, Prisma migration đầu, OAuth, session bền vững, chọn/kiểm tra folder, quét và phát một bài bằng byte range. Done trên máy phát triển — migration đã áp; HTTP ẩn danh và OAuth redirect đã kiểm tra; người dùng xác nhận đăng nhập, chọn folder, kiểm tra Editor, chuẩn bị folder, quét và phát/tua. Hai tệp nhỏ phát được; MP3 8,5 MB đã đệm hết, tua và kết thúc trong Edge sau khi yêu cầu `preload="auto"` cho bài tối đa 25 MiB. Đăng nhập cùng Gmail ở cửa sổ InPrivate đã vào thẳng thư viện cũ. Trang `/queue-spike` của ứng dụng Next.js đã được thử riêng trên iPhone; chưa có kết quả thử iPhone cho player một bài ở trang gốc.
 3. **Quản lý thư viện:** incoming, upload 200 MiB, xác nhận nhập, chỉ mục, tìm kiếm, playlist, yêu thích, thao tác idempotent/audit. Pending.
 4. **Player iPhone:** hàng chờ, phát ngẫu nhiên/lặp lại, tải trước có giới hạn, điều khiển màn hình khóa; kiểm tra nhiều bài, mạng yếu và định dạng. Pending.
 5. **Hoàn thiện:** ảnh bìa, lời đồng bộ theo dòng, giao diện responsive, vận hành/backup và phát hành. Pending.
@@ -114,4 +118,4 @@ Phê duyệt kế hoạch này cho phép thực hiện giai đoạn 1 và 2 vớ
 - Mỗi giai đoạn có migration áp dụng theo phiên bản, sao lưu DB trước thay đổi có dữ liệu, và có thể đưa mã về bản trước nếu schema vẫn tương thích. Không tự động xóa dữ liệu Drive khi rollback ứng dụng.
 - Hoàn thành MVP khi các luồng đã duyệt chạy được trên iPhone với quyền chỉ trong folder, phiên bền vững, nhập/upload/playlist/lyrics và player; lỗi/quyền/empty state rõ ràng; tài liệu vận hành cập nhật. Chỉ ghi “đã kiểm thử” cho phép thử thực sự được người dùng yêu cầu và đã chạy.
 
-Đã tạo ứng dụng Next.js, cài dependency ghim phiên bản, sinh Prisma Client và áp migration đầu lên DB phát triển. Route ẩn danh đã được kiểm tra trên server địa phương; người dùng đã xác nhận luồng Gmail thật, folder, Editor, quét và phát/tua trong Edge. Chưa thử ứng dụng mới trên iPhone, tệp lớn hơn 25 MiB, M4A/AAC, nhiều người dùng hoặc hosting.
+Đã tạo ứng dụng Next.js, cài dependency ghim phiên bản, sinh Prisma Client và áp migration đầu lên DB phát triển. Route ẩn danh đã được kiểm tra trên server địa phương; người dùng đã xác nhận luồng Gmail thật, folder, Editor, quét và phát/tua trong Edge. Trang thử hàng chờ `/queue-spike` đã có kết quả trên iPhone Safari và web app Màn hình chính: bài tải sẵn chuyển liên tục trong lần thử giới hạn, còn nhánh phát trực tiếp lúc trang ẩn có thể đứng ở giây 0. Chưa thử tệp lớn hơn 25 MiB, M4A/AAC, nhiều người dùng hoặc hosting.

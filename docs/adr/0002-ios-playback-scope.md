@@ -16,6 +16,8 @@ The prototype can stream a single track in Safari and an iPhone Home Screen web 
 
 Phase 2 implements authenticated byte-range playback of one file. The queue and bounded preload transition belong to phase 4. The device trial does not establish reliability for large files, long queues or weak networks.
 
+An isolated scan-list queue experiment was later approved in [plan 0005](../plans/0005-arbitrary-track-startup.md). It tests preload behavior before phase 4 without adding the product queue or playlist. A ready next track transitioned successfully in limited iPhone retests; Safari's direct-stream fallback while hidden remains unreliable.
+
 ## Consequences
 
 MP3 and M4A/AAC over 25 MiB remain eligible for manual playback and later import. The later queue UI must warn that seamless background transition for those files is unproven. No offline audio caching is part of the MVP.
