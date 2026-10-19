@@ -8,7 +8,7 @@ The product is one Next.js App Router application at the repository root. `spike
 2. Reuse the Google OAuth client and service account from the prototype if desired. Set the absolute service-account JSON path outside this repository. The app reads its `client_email` to show the address to share with Editor access.
 3. Add `http://localhost:3000/v1/auth/google/callback` as an authorized redirect URI in Google Auth Platform. `APP_BASE_URL` must equal the browser origin. For a later HTTPS origin, add the matching redirect URI and set the deployed environment separately.
 4. Create a dedicated, empty `drive_player` database and user. Review `prisma/migrations/20261019000000_foundation/migration.sql` before applying it. No existing database should be reused without a separate migration plan.
-5. With the database configured, use `corepack pnpm db:migrate`, `corepack pnpm db:generate`, then `corepack pnpm dev`. The first migration is applied on the current local development database; other installations still need this step.
+5. Install the pinned dependencies with `corepack pnpm install --frozen-lockfile`. With the database configured, use `corepack pnpm db:migrate`, `corepack pnpm db:generate`, then `corepack pnpm dev`. The first migration is applied on the current local development database; other installations still need this step.
 
 The old prototype used an API key for an embedded Picker. The new full-page Google Picker flow uses the OAuth client and does not need `GOOGLE_API_KEY` or `GOOGLE_PROJECT_NUMBER`.
 

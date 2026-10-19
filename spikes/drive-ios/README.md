@@ -43,7 +43,7 @@ The iPhone test needs an HTTPS URL reachable from the phone. A local `localhost`
 
 ### Temporary iPhone HTTPS test with ngrok
 
-This phase is approved for the dedicated test folder only. ngrok 3.39.11 is installed on the development computer. The user creates their own free ngrok account, finds the assigned dev domain under **Gateway → Domains**, and adds the ngrok authtoken locally using the [official setup instructions](https://ngrok.com/download/windows). Never send the token through chat or save it in this repository. Open a new PowerShell terminal after installation so the `ngrok` command is on `PATH`.
+This phase was approved for the dedicated test folder only. Use an installed ngrok client; the exact local version may change. The user creates their own free ngrok account, finds the assigned dev domain under **Gateway → Domains**, and adds the ngrok authtoken locally using the [official setup instructions](https://ngrok.com/download/windows). Never send the token through chat or save it in this repository. Open a new PowerShell terminal after installation so the `ngrok` command is on `PATH`.
 
 Once the dev domain is known, set `BASE_URL=https://<dev-domain>` in the ignored `.env` file. In the Google OAuth Web client, add the same HTTPS origin and `https://<dev-domain>/oauth/callback`. In the Picker API key's website restrictions, add `https://<dev-domain>/*`. Keep the existing localhost entries for local testing. Restart the prototype so it reads the new `BASE_URL`, then run `ngrok http 8765 --url https://<dev-domain>` in a separate terminal. Verify the public URL loads before opening it on the iPhone. Google's OAuth redirect URI must match exactly.
 

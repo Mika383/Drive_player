@@ -3,6 +3,8 @@
 Trạng thái: Done — phép thử bổ sung 0003 đạt có điều kiện
 Được duyệt: 19/10/2026
 
+Lưu ý: Các mục “Hiện trạng” và bước thực hiện bên dưới ghi lại thời điểm làm phép thử này. Sau đó kế hoạch [0004](0004-mvp-architecture-proposal.md) đã chọn stack và triển khai lát cắt Next.js; kế hoạch [0005](0005-arbitrary-track-startup.md) đã thử hàng chờ trong ứng dụng mới.
+
 ## Mục tiêu
 
 Kiểm chứng hai điều kiện bắt buộc trước khi chọn stack sản phẩm: (1) ứng dụng chỉ có quyền đọc/ghi trong thư mục My Drive của từng người dùng Gmail cá nhân; (2) web app phát nhạc liên tục trên iPhone khi khóa màn hình, kể cả chuyển bài.
@@ -73,7 +75,7 @@ Kiểm chứng hai điều kiện bắt buộc trước khi chọn stack sản p
 
 ## HTTPS tạm để thử iPhone — đã duyệt
 
-Người dùng chưa có tên miền riêng và đã duyệt dùng ngrok ngày 19/10/2026. Dùng một ngrok dev domain tĩnh và HTTPS tunnel tới `127.0.0.1:8765`, chỉ trong thời gian thử với Gmail và thư mục Drive thử nghiệm. ngrok 3.39.11 đã được cài; tài khoản/token và dev domain do người dùng tự cấu hình cục bộ. Đặt `BASE_URL` bằng HTTPS URL được cấp, bổ sung origin/callback tương ứng trong Google OAuth client và domain đó trong giới hạn website của Picker API key. Sau khi thử Safari và Home Screen, dừng tunnel và đổi cấu hình local về `http://localhost:8765`.
+Người dùng chưa có tên miền riêng và đã duyệt dùng ngrok ngày 19/10/2026. Dùng một ngrok dev domain tĩnh và HTTPS tunnel tới `127.0.0.1:8765`, chỉ trong thời gian thử với Gmail và thư mục Drive thử nghiệm. ngrok đã được cài; tài khoản/token và dev domain do người dùng tự cấu hình cục bộ. Đặt `BASE_URL` bằng HTTPS URL được cấp, bổ sung origin/callback tương ứng trong Google OAuth client và domain đó trong giới hạn website của Picker API key. Sau khi thử Safari và Home Screen, dừng tunnel và đổi cấu hình local về `http://localhost:8765`.
 
 Dev domain đã nhận: `dexterous-each-yodel.ngrok-free.dev`. Người dùng xác nhận đã cấu hình authtoken và các URL Google Cloud. Bản ngrok Microsoft Store xác nhận cấu hình hợp lệ; tunnel đã được bật. URL HTTPS trả HTTP 200, chuyển tiếp đến `localhost:8765`; OAuth redirect từ prototype trỏ đúng `https://dexterous-each-yodel.ngrok-free.dev/oauth/callback`. Người dùng đã đăng nhập và phát nhạc trên iPhone; kết quả chi tiết, gồm lỗi chuyển bài khi web app chạy nền, nằm trong `spikes/drive-ios/RESULTS.md`.
 
@@ -85,4 +87,4 @@ Trong thời gian thử, tunnel đưa prototype cục bộ ra Internet qua bên 
 - Safari mở trực tiếp phát, tua và tự chuyển bài khi khóa màn hình. Web app độc lập từ biểu tượng chuyển metadata nhưng bài sau im lặng cho tới khi mở lại. Biểu tượng mở trong Safari có khoảng 5 giây im lặng rồi bài sau bắt đầu lại từ 0. Do đó trải nghiệm mở từ biểu tượng chưa đáp ứng điều kiện phát liên tục.
 - Ngrok tunnel và server prototype đã dừng; `BASE_URL` cục bộ đã trả về `http://localhost:8765`. Đã kiểm tra không còn listener trên 8765/4040. Không có thay đổi nào lên tệp Drive do bước dọn dẹp này.
 - Sau kết quả ban đầu, người dùng duyệt phép thử bổ sung [0003](0003-ios-background-next-track.md): hai phần tử audio và tải sẵn toàn bộ một bài kế tiếp dưới 25 MiB. Người dùng xác nhận hai lần chuyển liên tục trong cả web app độc lập và biểu tượng mở Safari, điều khiển màn hình khóa hoạt động. Điều kiện phát nền đã **đạt trong phép thử giới hạn**; chưa đủ bằng chứng cho thư viện lớn, nhiều định dạng và mạng yếu.
-- Chưa chốt stack hoặc dựng MVP. Cần đưa giải pháp tải trước có giới hạn bộ nhớ/dữ liệu vào thiết kế sản phẩm, có trạng thái dự phòng khi bài sau chưa tải xong.
+- Tại thời điểm kết thúc phép thử 0001, stack và MVP chưa được chốt. Sau đó kế hoạch 0004 đã chốt Next.js/PostgreSQL/Prisma và triển khai giai đoạn 1–2; kế hoạch 0005 đã thử tải trước với giới hạn 50 MiB. Nhánh chuyển trực tiếp khi bài sau chưa sẵn sàng vẫn cần xử lý trước khi trở thành player sản phẩm.
